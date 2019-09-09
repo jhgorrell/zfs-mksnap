@@ -1,0 +1,93 @@
+#!/bin/bash
+#
+# https://github.com/jhgorrell/zfs-mksnap
+#
+
+# set -xv
+
+#####
+
+ZFS_MKSNAP_DATE_FMT=${ZFS_MKSNAP_DATE_FMT:-%Y%m%dT%H%M%S}
+opt_r=""
+opt_snapname=$(date "+${ZFS_MKSNAP_DATE_FMT}")
+
+#####
+
+function show_help () {
+  cat <<EO_HELP
+
+$(basename "${0}"): makes a ZFS snapshot, with a bunch of defaults.
+
+SYNOPSIS:
+
+   $(basename "${0}") [OPTIONS] [PATHS]
+
+OPTIONS:
+
+  --help|-h = this help
+
+  -r = Recursive snapshot
+
+  --snapname|--name|-n = The name of the snapshot.
+                         (default: ${opt_snapname})
+
+  If not paths are given, uses the current dir. (".")
+
+EO_HELP
+}
+
+#####
+
+while [[ 0 -lt "${#}" ]]
+do
+  if [[ ! "${1:-}" = -* ]]
+  then
+    break
+  fi
+  #
+  arg="${1}"
+  shift
+
+  case "${arg}" in
+    --help|-h)
+      show_help
+      exit 0
+      ;;
+
+    -r)
+      opt_r="-r"
+      ;;
+
+    --snapname|--name|-n)
+      opt_snapname="${1}"
+      shift
+      ;;
+
+    *)
+      show_help
+      exit 1
+      ;;
+    esac
+done
+
+#
+if [[ "${*}" = "" ]]
+then
+  set - "."
+fi
+
+#####
+
+for fs_path in "${@}"
+do
+  fs_type=$(df --output=fstype "${fs_path}" | tail +2)
+  fs_source=$(df --output=source "${fs_path}" | tail +2)
+  if [[ "${fs_type}" = "zfs" ]]
+  then
+    cmd="sudo zfs snap ${opt_r} ${fs_source}@${opt_snapname}"
+    echo "### CMD: '${cmd}'"
+    eval "${cmd}"
+  else
+    echo "### '${fs_path}' is not zfs: '${fs_source}' is '${fs_type}'"
+  fi
+done
