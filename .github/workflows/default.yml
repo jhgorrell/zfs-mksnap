@@ -1,0 +1,21 @@
+#
+# zfs-mksnap/.github/workflows/default.yml ---
+#
+
+name: CI
+
+on:
+  - push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v1
+
+    - name: install shellcheck
+      run: sudo apt-get install make shellcheck
+
+    - name: run shellcheck
+      run: make shellcheck
