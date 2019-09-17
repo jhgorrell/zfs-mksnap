@@ -9,7 +9,8 @@
 
 ZFS_MKSNAP_DATE_FMT=${ZFS_MKSNAP_DATE_FMT:-%Y%m%dT%H%M%S}
 opt_r=""
-opt_snapname=$(date "+${ZFS_MKSNAP_DATE_FMT}")
+opt_snap_prefix=""
+opt_snap_name=$(date "+${ZFS_MKSNAP_DATE_FMT}")
 
 #####
 
@@ -29,7 +30,10 @@ OPTIONS:
   -r = Recursive snapshot
 
   --snapname|--name|-n = The name of the snapshot.
-                         (default: ${opt_snapname})
+                         (default: ${opt_snap_name})
+
+  --prefix|-p = Prefix to the date.
+                (example: PREFIX-${opt_snap_name})
 
   If not paths are given, uses the current dir. (".")
 
@@ -45,7 +49,7 @@ do
     break
   fi
   #
-  arg="${1}"
+  arg="${1:-}"
   shift
 
   case "${arg}" in
@@ -59,7 +63,12 @@ do
       ;;
 
     --snapname|--name|-n)
-      opt_snapname="${1}"
+      opt_snap_name="${1:-}"
+      shift
+      ;;
+
+    --prefix|-p)
+      opt_snap_prefix="${1:-}"
       shift
       ;;
 
@@ -84,7 +93,7 @@ do
   fs_source=$(df --output=source "${fs_path}" | tail +2)
   if [[ "${fs_type}" = "zfs" ]]
   then
-    cmd="sudo zfs snap ${opt_r} ${fs_source}@${opt_snapname}"
+    cmd="sudo zfs snap ${opt_r} ${fs_source}@${opt_snap_prefix}${opt_snap_name}"
     echo "### CMD: '${cmd}'"
     eval "${cmd}"
   else

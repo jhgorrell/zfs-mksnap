@@ -5,7 +5,7 @@
 SHELL:=bash
 .SUFFIXES:
 
-_default:
+_default: shellcheck
 
 #####
 
@@ -31,6 +31,12 @@ test_noargs:
 test_not_zfs:
 	./zfs-mksnap /var/tmp
 
+test_prefix_1:
+	./zfs-mksnap -p TEST- ${TEST_ZFS_PATH}
+
+test_prefix_2:
+	./zfs-mksnap -p TEST- -n $$(date +%s) ${TEST_ZFS_PATH}
+
 test_home_1:
 	./zfs-mksnap /zfs2/home
 	sleep 1
@@ -50,6 +56,8 @@ test_home_4:
 test+=test_help
 test+=test_noargs
 test+=test_not_zfs
+test+=test_prefix_1
+test+=test_prefix_2
 test+=test_home_1
 test+=test_home_2
 test+=test_home_3
@@ -57,12 +65,20 @@ test+=test_home_4
 
 test: ${test}
 
+# remove snaps with "test" in the name
+clean_snapshots_test:
+	for snap in $$(sudo zfs list -r -t snap -H -o name | grep -i -e test | sort) ; \
+	do \
+	  echo $${snap} ; \
+	  sudo zfs destroy $${snap} ; \
+	done
+
 #####
 
 shellcheck:
 	shellcheck ./zfs-mksnap
 
-precommit+=tests
+precommit+=test
 precommit+=shellcheck
 
 precommit: ${precommit}
