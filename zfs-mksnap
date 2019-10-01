@@ -89,8 +89,8 @@ fi
 
 for fs_path in "${@}"
 do
-  fs_type=$(df --output=fstype "${fs_path}" | tail +2)
-  fs_source=$(df --output=source "${fs_path}" | tail +2)
+  fs_type=$(df --output=fstype "${fs_path}" | tail -n +2)
+  fs_source=$(df --output=source "${fs_path}" | tail -n +2)
   if [[ "${fs_type}" = "zfs" ]]
   then
     cmd="sudo zfs snap ${opt_r} ${fs_source}@${opt_snap_prefix}${opt_snap_name}"
