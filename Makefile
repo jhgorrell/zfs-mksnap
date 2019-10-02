@@ -9,6 +9,11 @@ _default: shellcheck
 
 #####
 
+_apt_get_install:
+	sudo apt-get install python3-docutils
+
+#####
+
 BIN_DIR:=/usr/local/bin
 
 install:
@@ -77,6 +82,12 @@ clean_snapshots_test:
 
 shellcheck:
 	shellcheck ./zfs-mksnap
+
+%.html: %.rst
+	rst2html \
+	  --title="zfs-mksnap" \
+	  --no-generator \
+	  ${@:%.html=%.rst} ${@}
 
 precommit+=test
 precommit+=shellcheck
