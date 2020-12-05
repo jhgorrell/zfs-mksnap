@@ -10,7 +10,7 @@ _default: shellcheck
 #####
 
 _apt_get_install:
-	sudo apt-get install python3-docutils
+	sudo apt-get install python3-docutils shellcheck
 
 #####
 

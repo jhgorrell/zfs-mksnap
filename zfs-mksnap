@@ -8,6 +8,8 @@
 #####
 
 ZFS_MKSNAP_DATE_FMT=${ZFS_MKSNAP_DATE_FMT:-%Y%m%dT%H%M%S}
+
+opt_all=0
 opt_r=""
 opt_snap_prefix=""
 opt_snap_name=$(date "+${ZFS_MKSNAP_DATE_FMT}")
@@ -28,6 +30,9 @@ OPTIONS:
   --help|-h = this help
 
   -r = Recursive snapshot
+
+  --all = snapshot all the top level snaps.
+          implies "-r"
 
   --snapname|--name|-n = The name of the snapshot.
                          (default: ${opt_snap_name})
@@ -58,6 +63,11 @@ do
       exit 0
       ;;
 
+    --all)
+      opt_all=1
+      opt_r="-r"
+      ;;
+
     -r)
       opt_r="-r"
       ;;
@@ -76,7 +86,7 @@ do
       show_help
       exit 1
       ;;
-    esac
+  esac
 done
 
 #
@@ -86,6 +96,21 @@ then
 fi
 
 #####
+
+if [[ "${opt_all}" = 1 ]]
+then
+  #
+  all_dset_lst=$(zfs list -d0 -H -o name)
+  for dset in ${all_dset_lst}
+  do
+    cmd="sudo zfs snap ${opt_r} ${dset}@${opt_snap_prefix}${opt_snap_name}"
+    echo "### CMD: '${cmd}'"
+    eval "${cmd}"
+  done
+  exit 0
+fi
+
+###
 
 for fs_path in "${@}"
 do
